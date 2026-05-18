@@ -1,0 +1,8 @@
+{
+  "name": "@deep-research/shared",
+  "version": "0.1.0",
+  "description": "Shared contracts and types for the Deep Research Platform",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "private": true
+}

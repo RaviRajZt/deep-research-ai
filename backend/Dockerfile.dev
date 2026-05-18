@@ -1,0 +1,37 @@
+# ============================================
+# Deep Research Platform - Backend Dockerfile (Development)
+# ============================================
+# Single-stage build optimized for development:
+# - Includes dev dependencies
+# - Uses uvicorn reload mode
+# - Source code mounted via docker-compose volume
+# ============================================
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libpq-dev curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy dependency specification
+COPY pyproject.toml ./
+
+# Install all dependencies including dev extras
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir ".[dev]"
+
+# Copy application code (will be overridden by volume mount)
+COPY ./app ./app
+COPY ./alembic.ini ./alembic.ini
+COPY ./alembic ./alembic
+
+EXPOSE 8000
+
+# Run with hot-reload enabled
+CMD ["uvicorn", "app.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--reload"]
