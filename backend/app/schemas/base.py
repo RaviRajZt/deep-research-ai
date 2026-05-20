@@ -13,6 +13,7 @@ WHY separate schemas from models:
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -106,3 +107,13 @@ class SuccessResponse(BaseModel):
 
     success: bool = True
     message: str = "Operation completed successfully"
+
+
+class TimestampedSchema(BaseSchema):
+    """
+    Base schema for entities that have created_at / updated_at fields.
+    All DB response schemas for timestamped models should inherit from this.
+    """
+
+    created_at: datetime
+    updated_at: datetime

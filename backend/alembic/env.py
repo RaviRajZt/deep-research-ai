@@ -24,6 +24,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.db.base import Base
 from app.core.settings import get_settings
 
+# Import all models — REQUIRED for autogenerate to detect table changes.
+# Without this, Base.metadata has no tables and Alembic generates empty migrations.
+import app.models  # noqa: F401, E402
+
 # Alembic Config object
 config = context.config
 

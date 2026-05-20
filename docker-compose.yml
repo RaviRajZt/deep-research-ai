@@ -69,12 +69,17 @@ services:
       - .env
     environment:
       - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - "${BACKEND_PORT:-8888}:8000"
     volumes:
       # Mount source code for hot-reload
       - ./backend/app:/app/app:ro
+      # Mount alembic (writable) so new migration files persist to host
+      # and env.py changes are immediately reflected without a rebuild
+      - ./backend/alembic:/app/alembic
     depends_on:
       postgres:
         condition: service_healthy
