@@ -1,6 +1,6 @@
 // Re-export shared feature flag types for use within the frontend
-export type { FeatureFlagKey, FeatureFlagValue } from "../../shared/contracts/feature-flags";
-export { FeatureFlag } from "../../shared/contracts/feature-flags";
+export type { FeatureFlagKey, FeatureFlagValue } from "../../../shared/contracts/feature-flags";
+export { FeatureFlag } from "../../../shared/contracts/feature-flags";
 export type {
   HealthCheckResponse,
   HealthStatus,
@@ -12,4 +12,4 @@ export type {
   ResearchStatus,
   SSEEvent,
   SSEEventType,
-} from "../../shared/contracts/api";
+} from "../../../shared/contracts/api";

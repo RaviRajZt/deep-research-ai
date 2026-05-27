@@ -94,7 +94,7 @@ class ExecutionLogRepository(SQLAlchemyRepository[ExecutionLog]):
         - Provides clear intent: this is an append, not a generic create
         - Avoids accidental omission of session_id in agent code
         """
-        return await self.create(
+        log = await self.create(
             session_id=session_id,
             agent_role=agent_role,
             step_name=step_name,
@@ -103,6 +103,26 @@ class ExecutionLogRepository(SQLAlchemyRepository[ExecutionLog]):
             step_order=step_order,
             step_metadata=step_metadata,
         )
+        try:
+            from app.services.stream import StreamService
+            stream = StreamService()
+            await stream.publish_event(
+                session_id=session_id,
+                event_type="step",
+                data={
+                    "id": str(log.id),
+                    "agent_role": log.agent_role,
+                    "step_name": log.step_name,
+                    "status": log.status,
+                    "message": log.message,
+                    "step_order": log.step_order,
+                    "step_metadata": log.step_metadata,
+                    "created_at": log.created_at.isoformat() if log.created_at else None,
+                }
+            )
+        except Exception:
+            pass
+        return log
 
     async def complete_step(
         self,
@@ -133,7 +153,31 @@ class ExecutionLogRepository(SQLAlchemyRepository[ExecutionLog]):
             .execution_options(synchronize_session="fetch")
         )
         await self._session.flush()
-        return await self.get_by_id(log_id)
+        updated_log = await self.get_by_id(log_id)
+        
+        if updated_log:
+            try:
+                from app.services.stream import StreamService
+                stream = StreamService()
+                await stream.publish_event(
+                    session_id=updated_log.session_id,
+                    event_type="step",
+                    data={
+                        "id": str(updated_log.id),
+                        "agent_role": updated_log.agent_role,
+                        "step_name": updated_log.step_name,
+                        "status": updated_log.status,
+                        "message": updated_log.message,
+                        "step_order": updated_log.step_order,
+                        "step_metadata": updated_log.step_metadata,
+                        "duration_ms": updated_log.duration_ms,
+                        "token_count": updated_log.token_count,
+                        "created_at": updated_log.created_at.isoformat() if updated_log.created_at else None,
+                    }
+                )
+            except Exception:
+                pass
+        return updated_log
 
     async def fail_step(
         self,
@@ -153,7 +197,31 @@ class ExecutionLogRepository(SQLAlchemyRepository[ExecutionLog]):
             .execution_options(synchronize_session="fetch")
         )
         await self._session.flush()
-        return await self.get_by_id(log_id)
+        updated_log = await self.get_by_id(log_id)
+
+        if updated_log:
+            try:
+                from app.services.stream import StreamService
+                stream = StreamService()
+                await stream.publish_event(
+                    session_id=updated_log.session_id,
+                    event_type="step",
+                    data={
+                        "id": str(updated_log.id),
+                        "agent_role": updated_log.agent_role,
+                        "step_name": updated_log.step_name,
+                        "status": updated_log.status,
+                        "message": updated_log.message,
+                        "step_order": updated_log.step_order,
+                        "step_metadata": updated_log.step_metadata,
+                        "error_detail": updated_log.error_detail,
+                        "duration_ms": updated_log.duration_ms,
+                        "created_at": updated_log.created_at.isoformat() if updated_log.created_at else None,
+                    }
+                )
+            except Exception:
+                pass
+        return updated_log
 
     async def count_by_status(self, session_id: uuid.UUID) -> dict[str, int]:
         """

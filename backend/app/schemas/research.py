@@ -89,3 +89,23 @@ class ResearchSessionSummary(BaseSchema):
 
     class Config:
         from_attributes = True
+
+
+class SourceResponse(TimestampedSchema):
+    """Schema for a research source response."""
+
+    id: uuid.UUID
+    session_id: uuid.UUID
+    url: str
+    domain: str | None = None
+    title: str | None = None
+    content_hash: str | None = None
+    fetch_status: str
+    fetch_error: str | None = None
+    raw_token_count: int | None = None
+    summary_token_count: int | None = None
+    chunk_count: int | None = None
+    source_metadata: dict[str, Any] | None = None
+
+    class Config:
+        from_attributes = True

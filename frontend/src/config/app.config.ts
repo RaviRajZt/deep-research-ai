@@ -12,16 +12,6 @@
  * ============================================
  */
 
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable: ${key}. ` +
-        `Check your .env.local file or deployment config.`,
-    );
-  }
-  return value;
-}
 
 function optionalEnv(key: string, defaultValue: string): string {
   return process.env[key] ?? defaultValue;

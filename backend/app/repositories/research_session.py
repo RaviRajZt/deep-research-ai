@@ -100,7 +100,32 @@ class ResearchSessionRepository(SQLAlchemyRepository[ResearchSession]):
             .execution_options(synchronize_session="fetch")
         )
         await self._session.flush()
-        return await self.get_by_id(session_id)
+        updated_session = await self.get_by_id(session_id)
+        if updated_session:
+            try:
+                from app.services.stream import StreamService
+                stream = StreamService()
+                await stream.publish_event(
+                    session_id=session_id,
+                    event_type="status",
+                    data={
+                        "status": str(status),
+                        "error_message": error_message,
+                        "topic": updated_session.topic,
+                    }
+                )
+                if str(status) in ("failed", "cancelled"):
+                    await stream.publish_event(
+                        session_id=session_id,
+                        event_type="failed" if str(status) == "failed" else "cancelled",
+                        data={
+                            "status": str(status),
+                            "error_message": error_message,
+                        }
+                    )
+            except Exception:
+                pass
+        return updated_session
 
     async def set_result(
         self,
@@ -126,7 +151,27 @@ class ResearchSessionRepository(SQLAlchemyRepository[ResearchSession]):
             .execution_options(synchronize_session="fetch")
         )
         await self._session.flush()
-        return await self.get_by_id(session_id)
+        updated_session = await self.get_by_id(session_id)
+        if updated_session:
+            try:
+                from app.services.stream import StreamService
+                stream = StreamService()
+                await stream.publish_event(
+                    session_id=session_id,
+                    event_type="status",
+                    data={"status": "completed"}
+                )
+                await stream.publish_event(
+                    session_id=session_id,
+                    event_type="completed",
+                    data={
+                        "result_summary": result_summary,
+                        "result_token_count": result_token_count,
+                    }
+                )
+            except Exception:
+                pass
+        return updated_session
 
     async def count_by_status(self) -> dict[str, int]:
         """

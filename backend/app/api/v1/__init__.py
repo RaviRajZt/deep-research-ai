@@ -16,15 +16,10 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.v1.health import router as health_router
-
-# Future routers will be imported and included here:
-# from app.api.v1.research import router as research_router
+from app.api.v1.research import router as research_router
 
 api_v1_router = APIRouter()
 
 # Mount sub-routers
 api_v1_router.include_router(health_router)
-
-# Future:
-# api_v1_router.include_router(research_router, prefix="/research")
-# api_v1_router.include_router(agents_router, prefix="/agents")
+api_v1_router.include_router(research_router, prefix="/research")

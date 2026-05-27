@@ -68,7 +68,7 @@ export function HealthStatus(): React.JSX.Element {
       {/* Service breakdown */}
       {data.services.length > 0 && (
         <div className="space-y-2 border-t border-[var(--color-border)] pt-4">
-          {data.services.map((service) => (
+          {data.services.map((service: ServiceHealth) => (
             <ServiceRow key={service.name} service={service} />
           ))}
         </div>
