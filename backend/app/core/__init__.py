@@ -105,6 +105,13 @@ class AppSettings(BaseSettings):
     openai_max_tokens: int = Field(default=4096)
     openai_temperature: float = Field(default=0.7)
 
+    # ---------- Ollama / Local LLM ----------
+    ollama_base_url: str = Field(default="http://localhost:11434/v1")
+    ollama_model: str = Field(default="gemma2:2b")
+
+    # ---------- SearXNG Search ----------
+    searxng_base_url: str = Field(default="http://localhost:8080")
+
     # ---------- SSE (future phase) ----------
     sse_retry_timeout: int = Field(
         default=3000,

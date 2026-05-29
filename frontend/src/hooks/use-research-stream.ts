@@ -79,7 +79,7 @@ export function useResearchStream(sessionId: string | null) {
     }
 
     const streamUrl = `${appConfig.apiV1Url}/research/stream/${sessionId}`;
-    console.log(`Connecting to SSE research stream: ${streamUrl}`);
+    // console.log(`Connecting to SSE research stream: ${streamUrl}`);
     
     const es = new EventSource(streamUrl);
     eventSourceRef.current = es;

@@ -29,6 +29,12 @@ class ChunkSummarizerPipeline:
         self.chunker = chunker or SemanticChunker()
         self.storage = storage or ChunkStorageService()
         self.llm = llm or LLMService()
+        
+        # If we are using local Ollama client (no OpenAI API key), restrict concurrency to 1
+        # to avoid parallel queue timeouts on CPU-bound local environments.
+        if not getattr(self.llm, "api_key", None):
+            max_parallel_tasks = 1
+            
         self.semaphore = asyncio.Semaphore(max_parallel_tasks)
 
         logger.debug(

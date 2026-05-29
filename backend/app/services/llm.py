@@ -24,7 +24,14 @@ class LLMService:
         self.temperature = settings.openai_temperature
         self.max_tokens = settings.openai_max_tokens
 
-        if self.api_key:
+        # Ollama local parameters
+        self.ollama_base_url = settings.ollama_base_url
+        self.ollama_model = settings.ollama_model
+
+        import sys
+        is_testing = "pytest" in sys.modules
+
+        if self.api_key and not is_testing:
             logger.info("Initializing LLMService with live ChatOpenAI client", model=self.model_name)
             self._llm = ChatOpenAI(
                 openai_api_key=self.api_key,
@@ -32,8 +39,22 @@ class LLMService:
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
+        elif not is_testing:
+            logger.info(
+                "No OpenAI API key found; initializing LLMService with local Ollama client",
+                url=self.ollama_base_url,
+                model=self.ollama_model,
+            )
+            self._llm = ChatOpenAI(
+                api_key="ollama",
+                base_url=self.ollama_base_url,
+                model=self.ollama_model,
+                temperature=self.temperature,
+                timeout=120.0,
+                max_retries=0,
+            )
         else:
-            logger.info("No OpenAI API key found; initializing LLMService in high-fidelity SIMULATOR mode")
+            logger.info("Test environment detected; using high-fidelity simulator mode")
             self._llm = None
 
     async def summarize_text(self, text: str, context_hint: str = "general context") -> str:

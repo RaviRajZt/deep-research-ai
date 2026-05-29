@@ -230,3 +230,23 @@ async def get_session_sources(
     source_repo = SourceRepository(db)
     sources = await source_repo.get_by_session(session_id)
     return [SourceResponse.model_validate(source) for source in sources]
+
+
+@router.delete(
+    "/session/{session_id}",
+    summary="Delete a research session and all associated logs and sources",
+)
+async def delete_research_session(
+    session_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+) -> dict:
+    """Permanently delete a research session and all associated source and execution logs."""
+    session_repo = ResearchSessionRepository(db)
+    success = await session_repo.delete(session_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Research session with ID {session_id} not found",
+        )
+    await db.commit()
+    return {"status": "success", "message": f"Session {session_id} successfully deleted"}

@@ -217,9 +217,9 @@ export function SessionDetails(): React.JSX.Element {
         <div className="space-y-1.5 min-w-0">
           <button
             onClick={resetActiveSession}
-            className="group flex items-center gap-1 text-xs font-bold text-[var(--color-text-muted)] hover:text-violet-400 transition-colors focus:outline-none mb-1 sm:hidden"
+            className="group flex items-center gap-1.5 text-xs font-bold text-violet-400/90 hover:text-violet-300 transition-all duration-200 focus:outline-none mb-2 border border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10 px-2.5 py-1 rounded-lg w-fit shadow-md shadow-violet-950/20"
           >
-            <svg className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard

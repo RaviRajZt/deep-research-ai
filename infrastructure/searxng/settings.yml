@@ -1,0 +1,27 @@
+# ============================================
+# SearXNG - Privacy-Preserving Search Config
+# ============================================
+use_default_settings: true
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "deep_research_super_secret_key_change_me_in_prod"
+  limiter: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  formats:
+    - html
+    - json
+
+engines:
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    enabled: true
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    enabled: true

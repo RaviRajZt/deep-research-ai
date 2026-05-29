@@ -56,11 +56,11 @@ class StreamService:
         pubsub = self.client.pubsub()
         await pubsub.subscribe(channel)
 
-        logger.info(
-            "Client subscribed to research session stream",
-            session_id=str(session_id),
-            channel=channel,
-        )
+        # logger.info(
+        #     "Client subscribed to research session stream",
+        #     session_id=str(session_id),
+        #     channel=channel,
+        # )
 
         try:
             # Yield initial connection confirmation event
@@ -86,7 +86,7 @@ class StreamService:
                         logger.debug(
                             "Yielding event downstream",
                             session_id=str(session_id),
-                            event=event_type,
+                            event_type=event_type,
                         )
                         # Format as SSE standard protocol
                         yield f"event: {event_type}\ndata: {json.dumps(data_payload)}\n\n"
@@ -96,13 +96,13 @@ class StreamService:
                             logger.info(
                                 "Terminal event received. Closing stream.",
                                 session_id=str(session_id),
-                                event=event_type,
+                                event_type=event_type,
                             )
                             break
 
                 except asyncio.TimeoutError:
                     # Heartbeat interval expired with no new events. Yield a heartbeat ping.
-                    logger.debug("Emitting SSE heartbeat ping", session_id=str(session_id))
+                    # logger.debug("Emitting SSE heartbeat ping", session_id=str(session_id))
                     yield "event: ping\ndata: {\"heartbeat\": true}\n\n"
 
         except asyncio.CancelledError:

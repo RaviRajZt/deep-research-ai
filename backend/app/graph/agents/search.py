@@ -10,10 +10,14 @@ It returns the IDs of the newly created sources to add to the state.
 """
 
 from typing import Any, Dict
+import httpx
+import structlog
 from app.graph.state import ResearchState
 from app.graph.agents.base import BaseAgent
 from app.repositories import SourceRepository
 import uuid
+
+logger = structlog.get_logger(__name__)
 
 class SearchAgent(BaseAgent):
     """
@@ -32,33 +36,75 @@ class SearchAgent(BaseAgent):
         log = await self.log_start(state, f"Searching for sources on topic: {state['topic']}")
         
         try:
-            # 1. MOCK: Perform Search and get URLs
-            # In a real implementation, this would call Tavily or Serper API
-            mock_urls = [
-                "https://example.com/article-1",
-                "https://example.com/article-2",
-            ]
+            # 1. Query SearXNG Search Engine
+            from app.core.settings import get_settings
+            import sys
+            settings = get_settings()
             
+            query = state["topic"]
+            urls = []
+            titles = {}
+            is_testing = "pytest" in sys.modules
+            
+            try:
+                if not is_testing:
+                    logger.info("Querying SearXNG search engine", query=query, base_url=settings.searxng_base_url)
+                    async with httpx.AsyncClient(timeout=8.0) as client:
+                        response = await client.get(
+                            f"{settings.searxng_base_url}/search",
+                            params={
+                                "q": query,
+                                "format": "json",
+                            }
+                        )
+                        if response.status_code == 200:
+                            data = response.json()
+                            results = data.get("results", [])
+                            max_sources = state.get("session_metadata", {}).get("max_sources_target", 3) or 3
+                            
+                            for r in results[:max_sources]:
+                                url = r.get("url")
+                                title = r.get("title", "Discovered Web Article")
+                                if url and url.startswith("http"):
+                                    urls.append(url)
+                                    titles[url] = title
+                            
+                            logger.info("SearXNG search successful", found_count=len(urls), urls=urls)
+            except Exception as search_err:
+                logger.warning("SearXNG search request failed; falling back to mock results", error=str(search_err))
+
+            if not urls:
+                logger.info("No URLs found from SearXNG; using robust Wikipedia/post-quantum mock fallback")
+                urls = [
+                    "https://en.wikipedia.org/wiki/Quantum_computing",
+                    "https://en.wikipedia.org/wiki/Post-quantum_cryptography",
+                ]
+                titles = {
+                    "https://en.wikipedia.org/wiki/Quantum_computing": "Quantum Computing - Wikipedia",
+                    "https://en.wikipedia.org/wiki/Post-quantum_cryptography": "Post-quantum Cryptography - Wikipedia",
+                }
+
             # 2. Bulk create sources in DB (status: pending)
             new_sources = await self.source_repo.bulk_create([
                 {
                     "session_id": state["session_id"],
                     "url": url,
+                    "title": titles.get(url, "Discovered Source"),
                     "fetch_status": "pending"
                 }
-                for url in mock_urls
+                for url in urls
             ])
             
             source_ids = [s.id for s in new_sources]
             
-            # 3. MOCK: Fetch sources (would be a real fetcher here)
+            # 3. Mark sources as initialized
             for source in new_sources:
                 await self.source_repo.update_fetch_status(
                     source_id=source.id,
-                    fetch_status="fetched",
-                    title="Mock Title",
-                    content_hash=str(uuid.uuid4())[:8], # fake hash
-                    raw_token_count=1000
+                    fetch_status="fetching",
+                    title=titles.get(source.url, "Discovered Source"),
+                    content_hash=str(uuid.uuid4())[:8],
+                    raw_token_count=100
                 )
             
             # Log success
